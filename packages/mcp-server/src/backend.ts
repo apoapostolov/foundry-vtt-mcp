@@ -22,6 +22,7 @@ import { CompendiumTools } from './tools/compendium.js';
 
 import { SceneTools } from './tools/scene.js';
 import { PlaylistTools } from './tools/playlist.js';
+import { QaTools } from './tools/qa.js';
 
 import { ActorCreationTools } from './tools/actor-creation.js';
 import { ActorManagementTools } from './tools/actor-management.js';
@@ -1194,6 +1195,7 @@ async function startBackend(): Promise<void> {
 
   const sceneTools = new SceneTools({ foundryClient, logger });
   const playlistTools = new PlaylistTools({ foundryClient, logger });
+  const qaTools = new QaTools({ foundryClient, logger });
 
   const actorCreationTools = new ActorCreationTools({ foundryClient, logger });
   const actorManagementTools = new ActorManagementTools({ foundryClient, logger, systemRegistry });
@@ -1451,6 +1453,7 @@ async function startBackend(): Promise<void> {
     ...mapGenerationTools.getToolDefinitions(),
 
     ...playlistTools.getToolDefinitions(),
+    ...qaTools.getToolDefinitions(),
   ];
 
   // Start Foundry connector (owns app port 31415)
@@ -1782,6 +1785,16 @@ async function startBackend(): Promise<void> {
 
                 case 'update-scene-music':
                   result = await sceneTools.handleUpdateSceneMusic(args);
+
+                  break;
+
+                case 'qa-poll':
+                  result = await qaTools.handleQaPoll(args);
+
+                  break;
+
+                case 'qa-inspect':
+                  result = await qaTools.handleQaInspect(args);
 
                   break;
 

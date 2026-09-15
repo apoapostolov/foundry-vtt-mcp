@@ -4,6 +4,7 @@ import { QueryHandlers } from './queries.js';
 import { ModuleSettings } from './settings.js';
 import { CampaignHooks } from './campaign-hooks.js';
 import { ComfyUIManager } from './comfyui-manager.js';
+import { runtimeDiagnostics } from './runtime-diagnostics.js';
 // Connection control now handled through settings menu
 
 /**
@@ -39,6 +40,7 @@ class FoundryMCPBridge {
    */
   async initialize(): Promise<void> {
     try {
+      runtimeDiagnostics.install();
       console.log(`[${MODULE_ID}] Initializing Foundry MCP Bridge...`);
 
       // Register module settings
@@ -73,6 +75,7 @@ class FoundryMCPBridge {
         return;
       }
 
+      runtimeDiagnostics.installLate();
       console.log(`[${MODULE_ID}] Foundry ready, checking bridge status...`);
 
       // Connection control now handled through settings menu

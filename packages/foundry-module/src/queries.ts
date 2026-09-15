@@ -1,6 +1,8 @@
 import { MODULE_ID } from './constants.js';
 import { FoundryDataAccess } from './data-access.js';
 import { ComfyUIManager } from './comfyui-manager.js';
+import { runtimeDiagnostics } from './runtime-diagnostics.js';
+import { qaInspect, type QaInspectOptions } from './qa-inspect.js';
 
 export class QueryHandlers {
   public dataAccess: FoundryDataAccess;
@@ -163,6 +165,9 @@ export class QueryHandlers {
     CONFIG.queries[`${modulePrefix}.addSpellsToActor`] = this.handleAddSpellsToActor.bind(this);
     CONFIG.queries[`${modulePrefix}.addFeaturesFromCompendium`] =
       this.handleAddFeaturesFromCompendium.bind(this);
+
+    CONFIG.queries[`${modulePrefix}.qa-poll`] = this.handleQaPoll.bind(this);
+    CONFIG.queries[`${modulePrefix}.qa-inspect`] = this.handleQaInspect.bind(this);
   }
 
   /**
@@ -442,6 +447,35 @@ export class QueryHandlers {
         `Failed to get world info: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
+  }
+
+  /**
+   * Poll captured console/runtime diagnostics for QA.
+   */
+  private async handleQaPoll(data: any): Promise<any> {
+    const gmCheck = this.validateGMAccess();
+    if (!gmCheck.allowed) {
+      return { error: 'Access denied', success: false };
+    }
+    const action = data?.action || 'poll';
+    if (action === 'status') return runtimeDiagnostics.status();
+    if (action === 'clear') return runtimeDiagnostics.clear();
+    return runtimeDiagnostics.poll(data || {});
+  }
+
+  /**
+   * Read-only QA snapshots of packages, apps, hooks, canvas, combat, health.
+   */
+  private async handleQaInspect(data: any): Promise<any> {
+    const gmCheck = this.validateGMAccess();
+    if (!gmCheck.allowed) {
+      return { error: 'Access denied', success: false };
+    }
+    const options: QaInspectOptions = { action: data?.action };
+    if (data?.modules != null) options.modules = data.modules;
+    if (data?.hook != null) options.hook = data.hook;
+    if (typeof data?.limit === 'number') options.limit = data.limit;
+    return qaInspect(options);
   }
 
   /**
